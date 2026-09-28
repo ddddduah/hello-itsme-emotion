@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { EMOTION_BY_ID } from '../data/emotions'
 import { toDateKey } from '../lib/date'
 import { dataStore, newId } from '../lib/storage'
+import { suggestHiddenEmotions } from '../lib/hidden'
 import { findKeywordUnlocks, pickDailyUnlock } from '../lib/unlock'
 import type { AppData, Emotion, Entry, EntryEmotion, UnlockSource } from '../types'
 
@@ -16,18 +17,22 @@ export interface UnlockEvent {
 export interface SaveResult {
   entry: Entry
   unlocked: UnlockEvent[]
+  /** "혹시 이런 감정도 섞여 있었을까요?" 제안 (잠긴 감정 0~2개) */
+  hidden: Emotion[]
 }
 
 interface AppDataContextValue {
   data: AppData
   unlockedIds: Set<string>
-  /** 기록 저장 + 키워드 해금 */
+  /** 기록 저장 + 키워드 해금 + 숨은 감정 후보 계산 */
   saveEntry: (input: { text: string; emotions: EntryEmotion[] }) => Promise<SaveResult>
   /** 도우미·숨은 감정 제안 등에서 직접 해금 */
   unlock: (emotionIds: string[], source: UnlockSource) => Promise<UnlockEvent[]>
-  /** 아직 보여 주지 않은 해금 축하 (앞에서부터 하나씩 표시) */
+  /** 저장된 기록에 감정 추가 (숨은 감정 "맞아요") */
+  addEmotionToEntry: (entryId: string, emotion: EntryEmotion) => Promise<void>
   /** 마이홈 "이사 왔어요!" 연출을 본 것으로 표시 */
   markMoveInSeen: (emotionIds: string[]) => Promise<void>
+  /** 아직 보여 주지 않은 해금 축하 (앞에서부터 하나씩 표시) */
   celebrations: UnlockEvent[]
   dismissCelebration: () => void
   resetAll: () => Promise<void>
@@ -125,14 +130,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           hits.map((h) => ({ emotionId: h.emotion.id, unlockedAt: now.toISOString(), source: 'keyword' as const })),
         )
       }
-      setData(await dataStore.load())
+      const after = await dataStore.load()
+      setData(after)
 
       const unlocked = hits.map((h) => ({ emotion: h.emotion, source: 'keyword' as const, word: h.word }))
       celebrate(unlocked)
-      return { entry, unlocked }
+
+      // 방금 키워드로 열린 감정은 제외하고 숨은 감정 후보 계산
+      const hidden = suggestHiddenEmotions(
+        entry.text,
+        emotions.map((e) => e.emotionId),
+        new Set(after.unlocks.map((u) => u.emotionId)),
+      )
+      return { entry, unlocked, hidden }
     },
     [celebrate],
   )
+
+  const addEmotionToEntry = useCallback<AppDataContextValue['addEmotionToEntry']>(async (entryId, emotion) => {
+    const current = await dataStore.load()
+    const entry = current.entries.find((e) => e.id === entryId)
+    if (!entry || entry.emotions.some((e) => e.emotionId === emotion.emotionId)) return
+    await dataStore.updateEntry({ ...entry, emotions: [...entry.emotions, emotion] })
+    setData(await dataStore.load())
+  }, [])
 
   const markMoveInSeen = useCallback(async (emotionIds: string[]) => {
     if (!emotionIds.length) return
@@ -154,12 +175,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       unlockedIds: new Set(data.unlocks.map((u) => u.emotionId)),
       saveEntry,
       unlock,
+      addEmotionToEntry,
       markMoveInSeen,
       celebrations,
       dismissCelebration,
       resetAll,
     }
-  }, [data, saveEntry, unlock, markMoveInSeen, celebrations, dismissCelebration, resetAll])
+  }, [data, saveEntry, unlock, addEmotionToEntry, markMoveInSeen, celebrations, dismissCelebration, resetAll])
 
   if (!value) {
     return (

@@ -1,19 +1,23 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import EmotionCharacter from '../components/EmotionCharacter'
+import EmotionFinder from '../components/EmotionFinder'
 import PageHeader from '../components/PageHeader'
 import { EMOTION_BY_ID, EMOTIONS } from '../data/emotions'
 import { FAMILIES, FAMILY_BY_ID } from '../data/families'
 import { INTENSITY_LABELS } from '../data/intensity'
 import { toDateKey } from '../lib/date'
 import { useAppData, type SaveResult } from '../store/AppDataContext'
-import type { Entry, EntryEmotion, Intensity } from '../types'
+import type { Emotion, Entry, EntryEmotion, Intensity } from '../types'
 
 const MAX_TEXT = 2000
 
 export default function RecordPage() {
-  const { data, unlockedIds, saveEntry } = useAppData()
+  const { data, unlockedIds, saveEntry, unlock } = useAppData()
+  const [finderOpen, setFinderOpen] = useState(false)
+  /** 도우미를 열 때마다 새로 마운트해서 처음 단계부터 */
+  const [finderKey, setFinderKey] = useState(0)
   const [text, setText] = useState('')
   const [params] = useSearchParams()
   // 마이홈 캐릭터에서 "이 감정 기록하기"로 들어오면 미리 선택
@@ -35,6 +39,22 @@ export default function RecordPage() {
 
   const setIntensity = (emotionId: string, intensity: Intensity) =>
     setSelected((cur) => cur.map((s) => (s.emotionId === emotionId ? { ...s, intensity } : s)))
+
+  const openFinder = () => {
+    setFinderKey((k) => k + 1)
+    setFinderOpen(true)
+  }
+  const closeFinder = useCallback(() => setFinderOpen(false), [])
+
+  /** 도우미에서 고른 감정: 잠긴 것은 해금하고, 기록 선택에 추가 */
+  const handleFinderPick = async (ids: string[]) => {
+    setFinderOpen(false)
+    setSelected((cur) => [
+      ...cur,
+      ...ids.filter((id) => !cur.some((s) => s.emotionId === id)).map((emotionId) => ({ emotionId, intensity: 3 as const })),
+    ])
+    await unlock(ids, 'finder')
+  }
 
   const handleSave = async () => {
     if (!canSave) return
@@ -102,11 +122,10 @@ export default function RecordPage() {
               <EmotionPicker unlockedIds={unlockedIds} selected={selected} onToggle={toggle} />
               <button
                 type="button"
-                disabled
-                title="5단계에서 연결돼요"
-                className="mt-3 w-full rounded-full border border-dashed border-line px-4 py-3 text-sm text-ink-faint"
+                onClick={openFinder}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-accent/50 bg-accent-soft/40 px-4 py-3 text-sm font-medium text-accent transition-colors hover:bg-accent-soft"
               >
-                이 감정이 뭔지 모르겠어요 <span className="text-xs">(준비 중)</span>
+                <span aria-hidden>🔍</span> 이 감정이 뭔지 모르겠어요
               </button>
             </section>
 
@@ -142,6 +161,14 @@ export default function RecordPage() {
       </AnimatePresence>
 
       {todayEntries.length > 0 && <TodayEntries entries={todayEntries} />}
+
+      <EmotionFinder
+        key={finderKey}
+        open={finderOpen}
+        unlockedIds={unlockedIds}
+        onClose={closeFinder}
+        onPick={(ids) => void handleFinderPick(ids)}
+      />
     </>
   )
 }
@@ -251,7 +278,10 @@ function IntensityRow({ item, onChange }: { item: EntryEmotion; onChange: (v: In
 // ───────────────────────── 저장 완료 ─────────────────────────
 
 function SavedCard({ result, onAgain }: { result: SaveResult; onAgain: () => void }) {
-  const { entry, unlocked } = result
+  const { data } = useAppData()
+  const { unlocked, hidden } = result
+  // 숨은 감정을 "맞아요"로 더하면 바로 반영되도록 저장소의 최신 기록을 사용
+  const entry = data.entries.find((e) => e.id === result.entry.id) ?? result.entry
   return (
     <motion.div
       key="saved"
@@ -282,6 +312,7 @@ function SavedCard({ result, onAgain }: { result: SaveResult; onAgain: () => voi
           기록 덕분에 새 감정 {unlocked.length}개를 만났어요.
         </p>
       )}
+      {hidden.length > 0 && <HiddenSuggestions entryId={entry.id} suggestions={hidden} />}
       <div className="mt-5 flex gap-2">
         <Link
           to="/"
@@ -298,6 +329,89 @@ function SavedCard({ result, onAgain }: { result: SaveResult; onAgain: () => voi
         </button>
       </div>
     </motion.div>
+  )
+}
+
+// ───────────────────────── 숨은 감정 제안 ─────────────────────────
+
+/**
+ * "혹시 이런 감정도 섞여 있었을까요?" — 한 번에 하나씩 묻고,
+ * "맞아요"면 해금하고 방금 기록에도 (강도 '조금'으로) 더합니다.
+ */
+function HiddenSuggestions({ entryId, suggestions }: { entryId: string; suggestions: Emotion[] }) {
+  const { unlock, addEmotionToEntry } = useAppData()
+  const [index, setIndex] = useState(0)
+  const [accepted, setAccepted] = useState<string[]>([])
+  const current = suggestions[index]
+
+  const answer = async (yes: boolean) => {
+    if (yes && current) {
+      setAccepted((a) => [...a, current.id])
+      await addEmotionToEntry(entryId, { emotionId: current.id, intensity: 2 })
+      await unlock([current.id], 'hidden')
+    }
+    setIndex((i) => i + 1)
+  }
+
+  return (
+    <div className="mt-5 text-left">
+      <AnimatePresence mode="wait">
+        {current ? (
+          <motion.div
+            key={current.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="rounded-3xl px-4 py-4"
+            style={{ background: FAMILY_BY_ID[current.family].color.soft }}
+          >
+            <p className="text-sm font-semibold">혹시 이런 감정도 섞여 있었을까요?</p>
+            <div className="mt-3 flex gap-3">
+              <EmotionCharacter family={current.family} intensity={2} silhouette className="h-12 w-12 shrink-0" title="" />
+              <div className="min-w-0">
+                <p className="font-semibold" style={{ color: FAMILY_BY_ID[current.family].color.deep }}>
+                  {current.name}
+                </p>
+                <p className="mt-0.5 text-sm leading-relaxed text-ink-soft">{current.definition}</p>
+              </div>
+            </div>
+            <div className="mt-3.5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => void answer(false)}
+                className="flex-1 rounded-full bg-paper/80 px-4 py-2.5 text-sm text-ink-soft"
+              >
+                아니에요
+              </button>
+              <button
+                type="button"
+                onClick={() => void answer(true)}
+                className="flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
+                style={{ background: FAMILY_BY_ID[current.family].color.deep }}
+              >
+                맞아요
+              </button>
+            </div>
+            {suggestions.length > 1 && (
+              <p className="mt-2 text-center text-[11px] text-ink-faint">
+                {index + 1} / {suggestions.length}
+              </p>
+            )}
+          </motion.div>
+        ) : (
+          <motion.p
+            key="done"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="rounded-2xl bg-cream px-4 py-3 text-center text-sm text-ink-soft"
+          >
+            {accepted.length > 0
+              ? '숨어 있던 마음까지 알아차리셨네요. 기록에도 함께 담아 두었어요.'
+              : '괜찮아요. 내 마음은 내가 가장 잘 알아요.'}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 

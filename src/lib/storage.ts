@@ -12,6 +12,8 @@ export interface DataStore {
   /** 전체 데이터 불러오기. 처음이면 초기 상태를 만들어 저장 */
   load(): Promise<AppData>
   addEntry(entry: Entry): Promise<void>
+  /** 같은 id 의 기록을 통째로 교체 */
+  updateEntry(entry: Entry): Promise<void>
   /** 이미 해금된 감정은 무시하고 새로 해금된 기록만 추가 */
   addUnlocks(records: UnlockRecord[]): Promise<void>
   setLastDailyUnlock(date: DateKey): Promise<void>
@@ -94,6 +96,10 @@ export class LocalDataStore implements DataStore {
 
   async addEntry(entry: Entry): Promise<void> {
     this.update((d) => ({ ...d, entries: [...d.entries, entry] }))
+  }
+
+  async updateEntry(entry: Entry): Promise<void> {
+    this.update((d) => ({ ...d, entries: d.entries.map((e) => (e.id === entry.id ? entry : e)) }))
   }
 
   async addUnlocks(records: UnlockRecord[]): Promise<void> {

@@ -33,4 +33,5 @@ export const SITUATIONS: { id: SituationId; label: string }[] = [
   { id: 'uncertain', label: '앞일을 알 수 없어요' },
   { id: 'aversive', label: '싫은 것을 마주했어요' },
   { id: 'anticipation', label: '좋은 일이 다가오고 있어요' },
+  { id: 'free-time', label: '여유 시간이 생겼어요' },
 ]

@@ -47,6 +47,7 @@ export type SituationId =
   | 'uncertain'
   | 'aversive'
   | 'anticipation'
+  | 'free-time'
 
 export interface SimilarEmotion {
   /** 비교 대상 감정 id */
