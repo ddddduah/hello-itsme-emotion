@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/*
+ * 디자인 토큰
+ * - 기본 톤: 따뜻한 크림 바탕 + 부드러운 갈색 글자
+ * - 감정 가족 색: 각 가족마다 main / soft(배경) / deep(글자·테두리) 3단계
+ *   캐릭터·차트·도감이 모두 이 토큰을 공유합니다. (src/data/families.ts 에서 참조)
+ *   JS 에서 var() 로 직접 참조하므로 static 으로 두어 사용하지 않는 토큰도 항상 출력합니다.
+ */
+@theme static {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  --color-cream: #fbf6ef;
+  --color-paper: #fffdf9;
+  --color-sand: #f1e8dc;
+  --color-line: #e6dccd;
+  --color-ink: #4a3f37;
+  --color-ink-soft: #7d7068;
+  --color-ink-faint: #a89c92;
+  --color-accent: #d9825f;
+  --color-accent-soft: #fbe6da;
+
+  /* 기쁨 — 햇살·꽃: 살구빛 */
+  --color-joy: #f4b27f;
+  --color-joy-soft: #fdeede;
+  --color-joy-deep: #b56a3a;
+  /* 슬픔 — 빗방울·물: 흐린 물빛 */
+  --color-sadness: #8fb3c4;
+  --color-sadness-soft: #e5eff3;
+  --color-sadness-deep: #4c7185;
+  /* 분노 — 불꽃·고추: 테라코타 */
+  --color-anger: #e0876d;
+  --color-anger-soft: #fae3db;
+  --color-anger-deep: #a54a33;
+  /* 두려움 — 바람·그림자: 해질녘 남빛 */
+  --color-fear: #9a9cc2;
+  --color-fear-soft: #ebebf5;
+  --color-fear-deep: #595c8a;
+  /* 놀람 — 별똥별·반짝임: 버터빛 */
+  --color-surprise: #eccb68;
+  --color-surprise-soft: #fbf3d6;
+  --color-surprise-deep: #957617;
+  /* 혐오·불쾌 — 이끼·버섯: 올리브 */
+  --color-disgust: #aeb277;
+  --color-disgust-soft: #eff0de;
+  --color-disgust-deep: #6a6e34;
+  /* 수치·부끄러움 — 달팽이·껍데기: 흐린 모브 */
+  --color-shame: #c29db3;
+  --color-shame-soft: #f4e9ef;
+  --color-shame-deep: #85566f;
+  /* 연결·사랑 — 실타래·덩굴: 볼빛 분홍 */
+  --color-love: #eda6b5;
+  --color-love-soft: #fcebee;
+  --color-love-deep: #b25a6d;
+  /* 평온 — 잎사귀·조약돌: 세이지 */
+  --color-calm: #9cc5aa;
+  --color-calm-soft: #e7f2ea;
+  --color-calm-deep: #4d7d5d;
+
+  --radius-blob: 2rem;
+  --shadow-soft: 0 6px 24px -8px rgb(120 90 60 / 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-cream font-sans text-ink antialiased;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
