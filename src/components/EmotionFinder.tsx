@@ -65,7 +65,7 @@ export default function EmotionFinder({ open, unlockedIds, onClose, onPick }: Pr
             role="dialog"
             aria-modal="true"
             aria-labelledby="finder-title"
-            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-[2rem] bg-paper shadow-soft sm:rounded-blob"
+            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-[2rem] bg-paper sketch sm:rounded-blob"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}

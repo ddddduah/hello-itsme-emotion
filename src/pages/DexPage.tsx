@@ -33,7 +33,7 @@ export default function DexPage() {
       <PageHeader title="감정 도감" sub="만난 감정의 뜻과, 헷갈리는 감정과의 차이를 살펴봐요." />
 
       {/* 진행률 */}
-      <div className="mb-5 rounded-3xl bg-paper px-5 py-4 shadow-soft">
+      <div className="mb-5 rounded-3xl bg-paper px-5 py-4 sketch">
         <div className="flex items-baseline justify-between">
           <span className="text-sm text-ink-soft">지금까지 만난 감정</span>
           <span className="text-sm">
@@ -42,7 +42,7 @@ export default function DexPage() {
           </span>
         </div>
         <div
-          className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-sand"
+          className="sketch mt-2.5 h-3 overflow-hidden rounded-full bg-paper"
           role="progressbar"
           aria-valuemin={0}
           aria-valuemax={total}

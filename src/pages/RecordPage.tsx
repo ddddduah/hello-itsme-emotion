@@ -106,7 +106,14 @@ export default function RecordPage() {
                 onChange={(e) => setText(e.target.value.slice(0, MAX_TEXT))}
                 rows={5}
                 placeholder="예) 점심에 동료가 내 의견을 가로채서 말했다. 아무렇지 않은 척했지만 오후 내내 신경이 쓰였다."
-                className="w-full resize-y rounded-3xl border border-line bg-paper px-5 py-4 text-[15px] leading-relaxed placeholder:text-ink-faint focus:border-accent focus:outline-none"
+                className="w-full resize-y rounded-2xl border-2 border-dashed border-line bg-paper px-5 py-[0.35rem] text-lg leading-[2rem] placeholder:text-ink-faint focus:border-accent focus:outline-none"
+                // 줄 노트처럼 가로줄
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(transparent 0 calc(2rem - 1px), rgb(52 49 45 / 0.14) calc(2rem - 1px) 2rem)',
+                  backgroundPosition: '0 0.35rem',
+                  backgroundAttachment: 'local',
+                }}
               />
               <p className="mt-1 text-right text-xs text-ink-faint">
                 {text.length} / {MAX_TEXT}
@@ -152,7 +159,7 @@ export default function RecordPage() {
             <button
               type="submit"
               disabled={!canSave}
-              className="w-full rounded-full bg-accent px-6 py-4 font-semibold text-white shadow-soft transition-all active:scale-[0.98] disabled:bg-line disabled:text-ink-faint disabled:shadow-none"
+              className="w-full rounded-full bg-accent px-6 py-4 font-semibold text-white sketch transition-all active:scale-[0.98] disabled:bg-line disabled:text-ink-faint disabled:shadow-none"
             >
               {saving ? '저장하는 중…' : '기록 남기기'}
             </button>
@@ -288,7 +295,7 @@ function SavedCard({ result, onAgain }: { result: SaveResult; onAgain: () => voi
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="rounded-blob bg-paper px-6 py-7 text-center shadow-soft"
+      className="rounded-blob bg-paper px-6 py-7 text-center sketch"
     >
       <div className="mx-auto mb-3 flex w-fit -space-x-3">
         {entry.emotions.slice(0, 4).map((s) => (
@@ -425,7 +432,7 @@ function TodayEntries({ entries }: { entries: Entry[] }) {
       <h2 className="mb-3 text-sm font-semibold text-ink-soft">오늘 남긴 기록 · {entries.length}</h2>
       <ul className="space-y-2.5">
         {entries.map((entry) => (
-          <li key={entry.id} className="rounded-3xl border border-line bg-paper px-5 py-4">
+          <li key={entry.id} className="sketch rounded-3xl bg-paper px-5 py-4">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs text-ink-faint">{timeFmt.format(new Date(entry.createdAt))}</span>
               {entry.emotions.map((s) => {

@@ -125,7 +125,7 @@ function UnlockedDetail({ emotion }: { emotion: Emotion }) {
         <Section title="이런 순간에 느껴요">
           <ul className="space-y-2">
             {emotion.examples.map((ex) => (
-              <li key={ex} className="flex gap-2.5 rounded-2xl bg-paper px-4 py-3 text-sm leading-relaxed">
+              <li key={ex} className="sketch flex gap-2.5 rounded-2xl bg-paper px-4 py-3 text-base leading-relaxed">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: family.color.main }} aria-hidden />
                 {ex}
               </li>
@@ -170,7 +170,7 @@ function UnlockedDetail({ emotion }: { emotion: Emotion }) {
 
         <Link
           to={`/record?emotion=${emotion.id}`}
-          className="flex w-full items-center justify-center rounded-full px-6 py-4 font-semibold text-white shadow-soft transition-transform active:scale-[0.98]"
+          className="flex w-full items-center justify-center rounded-full px-6 py-4 font-semibold text-white sketch transition-transform active:scale-[0.98]"
           style={{ background: family.color.deep }}
         >
           이 감정으로 기록하기
@@ -206,7 +206,7 @@ function Comparison({
   )
 
   return (
-    <li className="rounded-3xl bg-paper px-4 py-3.5">
+    <li className="sketch rounded-3xl bg-paper px-4 py-3.5">
       <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <span
           className="flex items-center gap-1 rounded-full py-0.5 pr-2.5 pl-1 text-sm font-semibold"
@@ -236,7 +236,7 @@ function EntryList({ entries, emotionId, family }: { entries: Entry[]; emotionId
         {visible.map((entry) => {
           const intensity = entry.emotions.find((x) => x.emotionId === emotionId)!.intensity
           return (
-            <li key={entry.id} className="rounded-2xl bg-paper px-4 py-3">
+            <li key={entry.id} className="sketch rounded-2xl bg-paper px-4 py-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium">
                   {formatDateKo(entry.date)}
@@ -278,7 +278,7 @@ function EntryList({ entries, emotionId, family }: { entries: Entry[]; emotionId
 function LockedDetail({ emotion }: { emotion: Emotion }) {
   const family = FAMILY_BY_ID[emotion.family]
   return (
-    <div className="mt-3 rounded-blob border border-line bg-paper px-6 py-8 text-center">
+    <div className="sketch mt-3 rounded-blob bg-paper px-6 py-8 text-center">
       <EmotionCharacter family={emotion.family} silhouette className="mx-auto h-28 w-28" title="아직 만나지 못한 감정" />
       <p className="mt-3 text-xs font-medium" style={{ color: family.color.deep }}>
         {family.name} 가족

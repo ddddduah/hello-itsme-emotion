@@ -60,7 +60,7 @@ export default function ReportPage() {
       <PageHeader title="나의 감정 리포트" sub="요즘 내 마음의 집에 누가 자주 머물렀는지 살펴봐요." />
 
       {/* 주 이동 */}
-      <div className="mb-4 flex items-center justify-between rounded-full bg-paper px-2 py-1.5 shadow-soft">
+      <div className="mb-4 flex items-center justify-between rounded-full bg-paper px-2 py-1.5 sketch">
         <WeekButton label="이전 주" disabled={start <= firstWeek} onClick={() => setStart(addDays(start, -7))}>
           ‹
         </WeekButton>
@@ -156,7 +156,7 @@ export default function ReportPage() {
 function WeekHero({ top, isThisWeek }: { top: EmotionTally | undefined; isThisWeek: boolean }) {
   if (!top) {
     return (
-      <div className="rounded-blob bg-paper px-6 py-8 text-center shadow-soft">
+      <div className="rounded-blob bg-paper px-6 py-8 text-center sketch">
         <p className="text-sm leading-relaxed text-ink-soft">
           {isThisWeek ? '이번 주에는 아직 기록이 없어요.' : '이 주에는 남긴 기록이 없어요.'}
         </p>
@@ -225,7 +225,7 @@ function FamilyBars({ families }: { families: FamilyShare[] }) {
             </span>
             <span className="h-3 overflow-hidden rounded-r-[4px]" aria-hidden>
               <motion.span
-                className="block h-full rounded-r-[4px]"
+                className="hatch block h-full rounded-r-[4px]"
                 style={{ background: fam.color.deep }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(f.share / max) * 100}%` }}
@@ -321,7 +321,7 @@ function WeekdayTable({ patterns, highlight }: { patterns: ReturnType<typeof wee
 
 function Card({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
   return (
-    <section className="rounded-3xl bg-paper px-5 py-5 shadow-soft">
+    <section className="rounded-3xl bg-paper px-5 py-5 sketch">
       <h2 className="font-semibold">{title}</h2>
       {sub && <p className="mt-0.5 text-xs text-ink-faint">{sub}</p>}
       <div className="mt-3.5">{children}</div>
@@ -331,7 +331,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
 
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-3xl bg-paper px-3 py-3.5 text-center shadow-soft">
+    <div className="rounded-3xl bg-paper px-3 py-3.5 text-center sketch">
       <p className="text-xs text-ink-soft">{label}</p>
       <p className="mt-1 text-xl font-semibold">
         {value}

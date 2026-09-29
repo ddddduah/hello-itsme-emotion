@@ -70,7 +70,7 @@ function SheetBody({
       role="dialog"
       aria-modal="true"
       aria-labelledby="sheet-title"
-      className="w-full max-w-md rounded-t-[2rem] bg-paper px-6 pt-3 pb-8 shadow-soft sm:rounded-blob sm:pt-6"
+      className="w-full max-w-md rounded-t-[2rem] bg-paper px-6 pt-3 pb-8 sketch sm:rounded-blob sm:pt-6"
       style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
       initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

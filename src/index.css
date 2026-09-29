@@ -1,25 +1,27 @@
 @import "tailwindcss";
 
 /*
- * 디자인 토큰
- * - 기본 톤: 따뜻한 크림 바탕 + 부드러운 갈색 글자
- * - 감정 가족 색: 각 가족마다 main / soft(배경) / deep(글자·테두리) 3단계
+ * 디자인 토큰 — "스케치북에 연필로 그린" 스타일
+ * - 바탕: 책상 위에 펼친 스케치북 종이
+ * - 선: 흑연(연필) 색, SVG 필터로 살짝 떨리는 손그림 선 (#pencil — SketchDefs.tsx)
+ * - 색: 감정 가족마다 색연필 한 자루. main / soft(옅게 칠한 면) / deep(진하게 누른 선) 3단계
  *   캐릭터·차트·도감이 모두 이 토큰을 공유합니다. (src/data/families.ts 에서 참조)
  *   JS 에서 var() 로 직접 참조하므로 static 으로 두어 사용하지 않는 토큰도 항상 출력합니다.
  */
 @theme static {
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+  --font-sans: "Gaegu", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
     "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 
-  --color-cream: #fbf6ef;
-  --color-paper: #fffdf9;
-  --color-sand: #f1e8dc;
-  --color-line: #e6dccd;
-  --color-ink: #4a3f37;
-  --color-ink-soft: #7d7068;
-  --color-ink-faint: #a89c92;
-  --color-accent: #d9825f;
-  --color-accent-soft: #fbe6da;
+  --color-desk: #e7dfcf;
+  --color-cream: #f6f1e6;
+  --color-paper: #fdfaf2;
+  --color-sand: #ece5d6;
+  --color-line: #b9b1a3;
+  --color-ink: #34312d;
+  --color-ink-soft: #5d5850;
+  --color-ink-faint: #8f887d;
+  --color-accent: #d27a58;
+  --color-accent-soft: #f8e1d5;
 
   /* 기쁨 — 햇살·꽃: 살구빛 */
   --color-joy: #f4b27f;
@@ -59,20 +61,94 @@
   --color-calm-deep: #4d7d5d;
 
   --radius-blob: 2rem;
-  --shadow-soft: 0 6px 24px -8px rgb(120 90 60 / 0.18);
+  --shadow-soft: 2px 3px 0 -1px rgb(52 49 45 / 0.14);
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* 손글씨체는 같은 크기에서 작아 보여 기본 크기를 조금 키움 */
+    font-size: 17.5px;
   }
   body {
-    @apply bg-cream font-sans text-ink antialiased;
+    @apply bg-desk font-sans text-ink antialiased;
     word-break: keep-all;
     overflow-wrap: anywhere;
+    /* 책상 나뭇결 대신 은은한 종이 결 */
+    background-image: var(--paper-grain);
+  }
+  /* 입력칸도 같은 손글씨체 */
+  input,
+  textarea,
+  button,
+  select {
+    font: inherit;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;
+    outline-style: dashed;
+  }
+  :root {
+    /* 종이 결: 아주 옅은 노이즈 */
+    --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .18 0 0 0 0 .15 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* 색연필 빗금 */
+    --hatch: repeating-linear-gradient(-50deg, rgb(52 49 45 / 0.1) 0 1.2px, transparent 1.2px 5px);
+  }
+}
+
+@layer components {
+  /* 스케치북 한 장 */
+  .sketch-page {
+    background-color: var(--color-paper);
+    background-image: var(--paper-grain);
+  }
+
+  /*
+   * 연필로 그린 테두리 카드.
+   * 테두리만 가상 요소에 그려 SVG 필터(#pencil)로 떨리게 합니다 — 안의 글자는 흔들리지 않음.
+   * ::before 는 한 번 더 겹쳐 그은 옅은 선.
+   */
+  .sketch {
+    box-shadow: var(--shadow-soft);
+  }
+  .sketch:not(.absolute):not(.fixed) {
+    position: relative;
+  }
+  .sketch::after,
+  .sketch::before {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .sketch::after {
+    inset: 0;
+    border: 1.7px solid var(--color-ink);
+    opacity: 0.8;
+    filter: url(#pencil);
+  }
+  .sketch::before {
+    inset: 1px -1px -1px 1px;
+    border: 1px solid var(--color-ink);
+    opacity: 0.22;
+    filter: url(#pencil-2);
+  }
+
+  /* 색연필로 칠한 면 (배경색 위에 빗금) */
+  .hatch {
+    background-image: var(--hatch);
+  }
+
+  /* 형광펜처럼 쓱 칠한 강조 */
+  .marker {
+    background: linear-gradient(transparent 55%, var(--color-accent-soft) 55% 92%, transparent 92%);
+  }
+}
+
+@layer utilities {
+  /* 주 버튼(bg-accent)은 색연필 빗금 + 연필 테두리 느낌 */
+  .bg-accent {
+    background-image: var(--hatch);
   }
 }
 

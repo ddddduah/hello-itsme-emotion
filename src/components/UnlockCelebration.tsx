@@ -88,7 +88,7 @@ function CelebrationCard({
       role="dialog"
       aria-modal="true"
       aria-labelledby="unlock-title"
-      className="relative w-full max-w-sm overflow-hidden rounded-blob bg-paper px-6 pt-8 pb-6 text-center shadow-soft"
+      className="relative w-full max-w-sm overflow-hidden rounded-blob bg-paper px-6 pt-8 pb-6 text-center sketch"
       style={{ backgroundImage: `radial-gradient(circle at 50% 30%, ${family.color.soft} 0%, transparent 65%)` }}
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
