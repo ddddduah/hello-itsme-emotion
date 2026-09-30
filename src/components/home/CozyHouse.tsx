@@ -42,7 +42,8 @@ export default function CozyHouse({ data, unlockedIds, stats, today, moveInReady
 
   return (
     <figure className="mx-auto max-w-xl">
-      <div className="relative w-full select-none" style={{ aspectRatio: `${VIEW.w} / ${VIEW.h}` }}>
+      {/* isolate: 캐릭터들의 z-index 가 이 그림 안에서만 쓰이도록 — 상세 보기 창 위로 올라오지 않게 */}
+      <div className="relative isolate w-full select-none" style={{ aspectRatio: `${VIEW.w} / ${VIEW.h}` }}>
         <RoomScene phase={phase} progress={progress} />
         {placements
           .slice()

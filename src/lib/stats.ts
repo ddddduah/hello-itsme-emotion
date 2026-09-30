@@ -16,6 +16,8 @@ export type CharacterState = 'new' | 'lively' | 'normal' | 'sleepy'
 export interface EmotionStats {
   emotionId: string
   total: number
+  /** 지금까지 기록된 강도의 합 (자주 + 크게 느낀 정도) */
+  totalIntensity: number
   /** 최근 RECENT_DAYS 일(오늘 포함) 기록 횟수 */
   recent: number
   /** 최근 기록들의 평균 강도 (없으면 null) */
@@ -34,7 +36,16 @@ export function computeEmotionStats(data: AppData, today: DateKey): Map<string, 
   const get = (id: string) => {
     let s = map.get(id)
     if (!s) {
-      s = { emotionId: id, total: 0, recent: 0, recentIntensity: null, lastDate: null, lastEntry: null, dates: [] }
+      s = {
+        emotionId: id,
+        total: 0,
+        totalIntensity: 0,
+        recent: 0,
+        recentIntensity: null,
+        lastDate: null,
+        lastEntry: null,
+        dates: [],
+      }
       map.set(id, s)
     }
     return s
@@ -46,6 +57,7 @@ export function computeEmotionStats(data: AppData, today: DateKey): Map<string, 
     for (const { emotionId, intensity } of entry.emotions) {
       const s = get(emotionId)
       s.total += 1
+      s.totalIntensity += intensity
       if (!s.lastEntry) {
         s.lastEntry = entry
         s.lastDate = entry.date

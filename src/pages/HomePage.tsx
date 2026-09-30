@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import CharacterSheet from '../components/home/CharacterSheet'
 import CozyHouse from '../components/home/CozyHouse'
+import { MAX_RESIDENTS, selectResidentIds } from '../components/home/placement'
 import { EMOTION_BY_ID } from '../data/emotions'
 import { toDateKey } from '../lib/date'
 import { characterState, computeEmotionStats } from '../lib/stats'
@@ -29,6 +30,9 @@ export default function HomePage() {
     () => data.unlocks.map((u) => u.emotionId).filter((id) => !data.moveInSeen.includes(id) && EMOTION_BY_ID[id]),
     [data.unlocks, data.moveInSeen],
   )
+  // 방에 나와 있는 감정 (가장 자주 느낀 최대 10가지)
+  const shownIds = useMemo(() => selectResidentIds(data, unlockedIds, stats), [data, unlockedIds, stats])
+  const shownNewcomers = newcomers.filter((id) => shownIds.includes(id))
   // 해금 축하 모달이 떠 있는 동안에는 입주 연출을 미룸
   const moveInReady = celebrations.length === 0
 
@@ -48,18 +52,24 @@ export default function HomePage() {
         <h1 className="mt-0.5 text-3xl font-bold">나의 마음집</h1>
         <p className="mt-1 text-base leading-relaxed text-ink-soft">
           지금 이 집에는 <strong className="marker text-ink">{unlockedIds.size}개</strong>의 감정이 살고 있어요.
+          {unlockedIds.size > MAX_RESIDENTS && (
+            <>
+              <br />
+              그중 가장 자주 찾아온 {MAX_RESIDENTS}가지가 방에 나와 있어요.
+            </>
+          )}
         </p>
       </div>
 
       <AnimatePresence>
-        {newcomers.length > 0 && moveInReady && (
+        {shownNewcomers.length > 0 && moveInReady && (
           <motion.p
             className="sketch mb-3 rounded-full bg-accent-soft px-4 py-1.5 text-center text-base text-ink"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
           >
-            새 이웃이 이사 왔어요 · <strong>{newcomers.map((id) => EMOTION_BY_ID[id].name).join(', ')}</strong>
+            새 이웃이 이사 왔어요 · <strong>{shownNewcomers.map((id) => EMOTION_BY_ID[id].name).join(', ')}</strong>
           </motion.p>
         )}
       </AnimatePresence>

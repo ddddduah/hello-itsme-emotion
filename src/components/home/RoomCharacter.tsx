@@ -38,30 +38,31 @@ export default function RoomCharacter({ placement: p, moveInReady, onSelect }: P
     reduce || sleepy || isNew
       ? undefined
       : {
+          // 한쪽으로 천천히 → 한참 쉬고 → 반대쪽으로 천천히 → 한참 쉬고 (한 바퀴 30~50초)
           x: ['0%', `${r}%`, `${r}%`, `${-r * 0.7}%`, `${-r * 0.7}%`, '0%'],
           transition: {
-            duration: (lively ? 9 : 16) + seed * 6,
-            times: [0, 0.3, 0.42, 0.75, 0.86, 1],
+            duration: (lively ? 30 : 40) + seed * 10,
+            times: [0, 0.22, 0.45, 0.7, 0.88, 1],
             repeat: Infinity,
             ease: 'easeInOut',
-            delay: seed * 3,
+            delay: seed * 4,
           },
         }
 
-  // 3) 몸짓
+  // 3) 몸짓 — 둥둥 떠다니는 느낌
   let body: TargetAndTransition | undefined
   if (reduce) body = undefined
   else if (sleepy)
-    body = { scaleY: [1, 0.93, 1], scaleX: [1, 1.03, 1], transition: { duration: 3.4 + seed, repeat: Infinity, ease: 'easeInOut' } }
+    body = { scaleY: [1, 0.94, 1], scaleX: [1, 1.03, 1], transition: { duration: 4 + seed, repeat: Infinity, ease: 'easeInOut' } }
   else if (lively)
     body = {
-      y: ['0%', '-32%', '0%', '0%'],
-      rotate: [0, -7, 5, 0],
-      transition: { duration: 0.9 + seed * 0.3, times: [0, 0.35, 0.7, 1], repeat: Infinity, ease: 'easeOut' },
+      y: ['0%', '-18%', '0%'],
+      rotate: [0, -4, 3, 0],
+      transition: { duration: 2 + seed * 0.6, repeat: Infinity, ease: 'easeInOut' },
     }
   else if (isNew && moveInReady)
-    body = { y: ['0%', '-10%', '0%'], transition: { duration: 0.4, repeat: 5, ease: 'easeInOut' } }
-  else body = { y: ['0%', '-7%', '0%'], transition: { duration: 0.7 + seed * 0.3, repeat: Infinity, ease: 'easeInOut' } }
+    body = { y: ['0%', '-10%', '0%'], transition: { duration: 0.7, repeat: 3, ease: 'easeInOut' } }
+  else body = { y: ['0%', '-8%', '0%'], transition: { duration: 2.6 + seed * 0.8, repeat: Infinity, ease: 'easeInOut' } }
 
   const label = sleepy
     ? `${emotion.name} (졸고 있어요)`

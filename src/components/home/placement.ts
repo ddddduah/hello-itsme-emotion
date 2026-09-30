@@ -52,19 +52,61 @@ function floorSpot(i: number) {
   return { x: x0 + u * (x1 - x0), y: y0 + v * (y1 - y0) }
 }
 
+/** 마이홈에 함께 보이는 감정의 최대 수 */
+export const MAX_RESIDENTS = 10
+
+/**
+ * 마이홈에 보일 감정 고르기 (최대 MAX_RESIDENTS)
+ *  1) 기록한 감정 중 가장 자주(횟수) → 가장 크게(강도 합) → 최근에 느낀 순
+ *  2) 자리가 남으면: 막 이사 온 새 감정 → 최근에 만난 감정 순으로 채움
+ */
+export function selectResidentIds(data: AppData, unlockedIds: Set<string>, stats: Map<string, EmotionStats>): string[] {
+  const unlocked = EMOTIONS.filter((e) => unlockedIds.has(e.id))
+
+  const recorded = unlocked
+    .filter((e) => (stats.get(e.id)?.total ?? 0) > 0)
+    .sort((a, b) => {
+      const sa = stats.get(a.id)!
+      const sb = stats.get(b.id)!
+      return (
+        sb.total - sa.total ||
+        sb.totalIntensity - sa.totalIntensity ||
+        (sb.lastDate ?? '').localeCompare(sa.lastDate ?? '') ||
+        a.unlockOrder - b.unlockOrder
+      )
+    })
+    .map((e) => e.id)
+
+  const picked = recorded.slice(0, MAX_RESIDENTS)
+  if (picked.length < MAX_RESIDENTS) {
+    const unlockedAt = new Map(data.unlocks.map((u) => [u.emotionId, u.unlockedAt]))
+    const rest = unlocked
+      .filter((e) => !picked.includes(e.id))
+      .sort((a, b) => {
+        const newA = data.moveInSeen.includes(a.id) ? 1 : 0
+        const newB = data.moveInSeen.includes(b.id) ? 1 : 0
+        return newA - newB || (unlockedAt.get(b.id) ?? '').localeCompare(unlockedAt.get(a.id) ?? '')
+      })
+      .map((e) => e.id)
+    picked.push(...rest.slice(0, MAX_RESIDENTS - picked.length))
+  }
+  return picked
+}
+
 export function placeResidents(
   data: AppData,
   unlockedIds: Set<string>,
   stats: Map<string, EmotionStats>,
   today: DateKey,
 ): Placement[] {
-  const residents = EMOTIONS.filter((e) => unlockedIds.has(e.id)).map((emotion) => {
+  const shown = new Set(selectResidentIds(data, unlockedIds, stats))
+  const residents = EMOTIONS.filter((e) => shown.has(e.id)).map((emotion) => {
     const st = stats.get(emotion.id)
     return { emotion, st, state: characterState(emotion.id, st, data, today) }
   })
 
-  // 사는 감정이 많을수록 조금씩 작게
-  const base = Math.max(28, 46 - Math.max(0, residents.length - 12) * 0.45)
+  // 최대 10명이라 넉넉한 크기
+  const base = residents.length > 7 ? 46 : 50
 
   const awake = residents
     .filter((r) => r.state !== 'sleepy')
@@ -82,7 +124,8 @@ export function placeResidents(
       intensity: r.st?.recentIntensity ?? 3,
       ...spot,
       size: base * depth * (lively ? sizeScale(r.st) : 1),
-      roam: lively ? 1.6 : 0.8,
+      // 너무 왔다 갔다 하지 않게 좁은 폭에서 천천히
+      roam: lively ? 0.55 : 0.3,
       seed: seedOf(r.emotion.id),
     }
   })

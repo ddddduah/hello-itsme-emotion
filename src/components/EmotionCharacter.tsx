@@ -63,9 +63,10 @@ export default function EmotionCharacter({
   title,
 }: Props) {
   const color = FAMILY_BY_ID[family].color
+  // 맨 아래 불투명 바탕을 깔아 색연필 결 사이로 배경이 비치지 않게 함
   const layers: Layer[] = silhouette
-    ? [paintSilhouetteFill(), paintHatch('url(#hatch-ink)'), paintLine('var(--color-ink-faint)')]
-    : [paintColor(color.main, color.soft), paintHatch(`url(#hatch-${family})`), paintLine(INK)]
+    ? [paintBase('var(--color-sand)', 'var(--color-sand)'), paintSilhouetteFill(), paintHatch('url(#hatch-ink)'), paintLine('var(--color-ink-faint)')]
+    : [paintBase(color.soft, color.soft), paintColor(color.main, color.soft), paintHatch(`url(#hatch-${family})`), paintLine(INK)]
 
   return (
     <svg viewBox="0 0 100 100" className={className} role="img" aria-label={title ?? '감정 캐릭터'} overflow="visible">
@@ -110,6 +111,17 @@ interface Layer {
   accent: (color: string, opacity?: number) => Paint
   /** 선으로만 그리는 장식 (소용돌이, 바람결, 실 가닥). 없으면 그리지 않음 */
   detail: Paint | null
+}
+
+/** 불투명 바탕 (필터 없음) — 위에 칠하는 색연필 결이 이 색 위로 보임 */
+function paintBase(main: string, soft: string): Layer {
+  return {
+    key: 'base',
+    main: { fill: main, stroke: 'none' },
+    sub: { fill: soft, stroke: 'none' },
+    accent: (c) => ({ fill: c, stroke: 'none' }),
+    detail: null,
+  }
 }
 
 function paintColor(main: string, soft: string): Layer {
@@ -172,7 +184,7 @@ function Body({ family, p }: { family: FamilyId; p: Layer }) {
               rx="8"
               ry="12"
               transform={`rotate(${i * 45} 50 55)`}
-              {...(p.key === 'color' ? { ...p.main, opacity: 0.5 } : p.accent('none'))}
+              {...(p.key === 'base' ? p.sub : p.key === 'color' ? { ...p.main, opacity: 0.5 } : p.accent('none'))}
             />
           ))}
           <circle cx="50" cy="55" r="27" {...p.main} />
